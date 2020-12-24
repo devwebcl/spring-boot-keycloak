@@ -20,18 +20,26 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 @EnableWebSecurity
 @ComponentScan(basePackageClasses = KeycloakSecurityComponents.class)
 class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
-    // Submits the KeycloakAuthenticationProvider to the AuthenticationManager
+
+    // Submits the KeycloakAuthenticationProvider to the AuthenticationManager.
+	// In the code below, the method configureGlobal() tasks the SimpleAuthorityMapper
+	// to make sure roles are not prefixed with ROLE_.
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+
         KeycloakAuthenticationProvider keycloakAuthenticationProvider = keycloakAuthenticationProvider();
         keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(new SimpleAuthorityMapper());
         auth.authenticationProvider(keycloakAuthenticationProvider);
     }
 
+
+    //Another method, keycloakConfigResolver defines that we want
+    //to use the Spring Boot properties file support instead of the default keycloak.json.
     @Bean
     public KeycloakSpringBootConfigResolver KeycloakConfigResolver() {
         return new KeycloakSpringBootConfigResolver();
     }
+
 
     // Specifies the session authentication strategy
     @Bean
@@ -40,13 +48,16 @@ class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
         return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
     }
 
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
         super.configure(http);
         http.authorizeRequests()
-            .antMatchers("/customers*", "/users*")
+            .antMatchers("/customers*", "/users*")  //filtro de seguridad !!!"
             .hasRole("user2") //TODO: en duro el role !!!
             .anyRequest()
             .permitAll();
+
     }
 }
